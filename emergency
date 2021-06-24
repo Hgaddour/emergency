@@ -1,0 +1,66 @@
+''' 
+
+
+this is a script is used to automate the call of emergency numbers with any sim card in TN region using the uiautomator2 & weditor package
+this code can lunch an automatic test case and return test results and other parameters
+
+prequisites:
+1- insert any sim card in DUT
+2- install latest SW version in the DUT
+3- install necessary packages in the computer and in the DUT to enable the communication
+4- install any python editor or run the weditor tool via windows shell
+
+tesks executed by this script:
+1- connect the DUT to the computer and pop up a UI selector (ATXWeditor)
+2- open the phone dialer and tap the emergency number
+3- make the call & open the speaker mode
+4- let the call run for 10s then end it
+5- return the test result and the speaker status
+
+QTTN ©
+
+'''
+
+import uiautomator2 as u2  # import uiautomator2
+import os
+import time 
+
+L = ["190","197","198","193"] # create a list of the availble emergency numbers
+
+d = u2.connect()  # connect your device
+
+test_result = 'FAIL'         #initiate the test result & speaker to default 
+speaker = 'speaker off'
+
+d.press("home")   #satrt by going to home page
+d(text="Téléphone").click()  #click the phone icon for call
+d(resourceId="com.google.android.dialer:id/dialpad_fab").click() #click the dial pad keyboard
+
+for num in (L):
+
+'''
+this is a for loop to run each emergency number in the list and tap this number
+to the the keyboard and press the call button
+
+if the call connect we enable the speaker mode and wait for 5 seconds then end the call
+also print the test result (fail or pass) and if the speaker mode is enabled
+
+'''
+    for j in range (len(num)):    
+    
+        d(resourceId="com.google.android.dialer:id/dialpad_key_number", text=int(num[j])).click()  # tap the emergency number
+    d(resourceId="com.google.android.dialer:id/dialpad_voice_call_button").click() # press the call button
+    time.sleep(1)
+    d.xpath('//*[@resource-id="com.google.android.dialer:id/incall_third_button"]/android.widget.ImageView[1]').click() #enable the preaker mode
+    
+    time.sleep(10)         
+    test_result = 'PASS'
+    speaker = 'speaker on'
+    print (test_result,'\n',speaker) #print the test results
+    d.wait_activity("com.android.incallui.InCallActivity", timeout=10) 
+    d(resourceId="com.google.android.dialer:id/incall_end_call").click() #end the call
+    test_result = 'FAIL'
+    speaker = 'speaker off'  # reinitiate the test result & speaker to default values
+    d(resourceId="com.google.android.dialer:id/dialpad_fab").click()  #press the keyboard to tap a new emergency number
+
+d.press('home')
